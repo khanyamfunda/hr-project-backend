@@ -1,36 +1,33 @@
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
 
-dotenv.config();
-
-// 1. Core Authentication Middleware (Verifies the JWT token)
-export function verifyToken(req, res, next) {
+export const verifyToken = (req, res, next) => {
+    // 1. Pull the header out of the incoming transaction packet
     const authHeader = req.headers['authorization'];
-    // Extract the token from the "Bearer TOKEN" format string
+    
+    // 2. Extract the raw string token right after the 'Bearer ' space marker
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
         return res.status(401).json({ error: "Access Denied: No login token provided!" });
     }
 
-    try {
-        const verified = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = verified; // Attaches user details (id, role) to the request object
-        next(); // Move to the next function safely
-    } catch (err) {
-        res.status(403).json({ error: "Invalid or expired session token!" });
-    }
-}
+    // 3. Structural validation alignment check using matching fallback secret
+    jwt.verify(token, process.env.JWT_SECRET || 'supersecretcyberpunkkey123', (err, decoded) => {
+        if (err) {
+            return res.status(403).json({ error: "Invalid or expired session token!" });
+        }
+        
+        // Save the decoded user payload to the request structure
+        req.user = decoded;
+        next();
+    });
+};
 
-// 2. Role-Based Authorization Middleware (Checks permissions)
-export function authorizeRoles(...allowedRoles) {
+export const authorizeRoles = (...allowedRoles) => {
     return (req, res, next) => {
-        // Enforce access control check against the token payload properties
         if (!req.user || !allowedRoles.includes(req.user.role)) {
-            return res.status(403).json({ 
-                error: `Access Forbidden: Your role (${req.user?.role || 'Guest'}) does not have permission to view this section.` 
-            });
+            return res.status(403).json({ error: "Forbidden: Your account role does not have authorization to view this resource." });
         }
         next();
     };
-}
+};
