@@ -16,6 +16,15 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        return res.status(400).json({
+            error: 'Invalid JSON body. In Thunder Client, set the body to JSON and send a proper object.'
+        });
+    }
+    next(err);
+});
+
 // Bind the Authentication System Routes
 app.use('/api/auth', authRoutes);
 

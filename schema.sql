@@ -132,16 +132,16 @@ INSERT INTO employees (first_name, last_name, email, job_title, salary, employme
 
 -- 3. PUTS 10 System User Security Credentials (Mapped to Employee IDs 1 to 10)
 INSERT INTO users (employee_id, username, password_hash, role) VALUES
-(1, 'sihongile_dev', '$2b$10$wEw61Y8G8N6F5NVZ68Tnze1R3L2eO06tS9eP4dy8f6D8N6F5NVZ68', 'Employee'),
-(2, 'lungile_hr', '$2b$10$wEw61Y8G8N6F5NVZ68Tnze1R3L2eO06tS9eP4dy8f6D8N6F5NVZ68', 'HR Staff'),
-(3, 'thabo_qa', '$2b$10$wEw61Y8G8N6F5NVZ68Tnze1R3L2eO06tS9eP4dy8f6D8N6F5NVZ68', 'Employee'),
-(4, 'keshav_sales', '$2b$10$wEw61Y8G8N6F5NVZ68Tnze1R3L2eO06tS9eP4dy8f6D8N6F5NVZ68', 'Employee'),
-(5, 'zanele_mkt', '$2b$10$wEw61Y8G8N6F5NVZ68Tnze1R3L2eO06tS9eP4dy8f6D8N6F5NVZ68', 'Employee'),
-(6, 'sipho_design', '$2b$10$wEw61Y8G8N6F5NVZ68Tnze1R3L2eO06tS9eP4dy8f6D8N6F5NVZ68', 'Employee'),
-(7, 'naledi_ops', '$2b$10$wEw61Y8G8N6F5NVZ68Tnze1R3L2eO06tS9eP4dy8f6D8N6F5NVZ68', 'Manager'),
-(8, 'farai_content', '$2b$10$wEw61Y8G8N6F5NVZ68Tnze1R3L2eO06tS9eP4dy8f6D8N6F5NVZ68', 'Employee'),
-(9, 'karabo_fin', '$2b$10$wEw61Y8G8N6F5NVZ68Tnze1R3L2eO06tS9eP4dy8f6D8N6F5NVZ68', 'Manager'),
-(10, 'fatima_support', '$2b$10$wEw61Y8G8N6F5NVZ68Tnze1R3L2eO06tS9eP4dy8f6D8N6F5NVZ68', 'Employee');
+(1, 'sihongile_dev', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee'),
+(2, 'lungile_hr', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'HR Staff'),
+(3, 'thabo_qa', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee'),
+(4, 'keshav_sales', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee'),
+(5, 'zanele_mkt', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee'),
+(6, 'sipho_design', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee'),
+(7, 'naledi_ops', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Manager'),
+(8, 'farai_content', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee'),
+(9, 'karabo_fin', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Manager'),
+(10, 'fatima_support', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee');
 
 -- 4. PUTS Complete 10-Row Payroll Ledger From our first JSON file
 INSERT INTO payroll (employee_id, hours_worked, leave_deductions, final_salary) VALUES
