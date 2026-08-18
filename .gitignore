@@ -1,7 +1,7 @@
 # Block private credentials and environment configurations
 .env
 
-# Block massive local dependencies folder (Your team generates this locally via npm install)
+# Block massive local dependencies folder (You generate this locally via npm install)
 node_modules/
 
 # Block local system cache files
