@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
+import payrollRoutes from './routes/payrollRoutes.js';
 import pool from './config/db.js';
 import { verifyToken, authorizeRoles } from './middleware/authMiddleware.js';
 
@@ -15,6 +16,7 @@ app.use(express.json());
 
 // Bind the Authentication System Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/payroll', payrollRoutes);
 
 // ==================== PROTECTED CORE DATA ROUTES ====================
 

@@ -132,16 +132,16 @@ INSERT INTO employees (first_name, last_name, email, job_title, salary, employme
 -- Passwords are encrypted as a bcrypt hash of 'ModernTech2026!'
 -- Roles are distributed to test different clearance privileges on your dashboard menus
 INSERT INTO users (employee_id, username, password_hash, role) VALUES
-(1, 'sibongile_dev', '$2b$10$wEw6iY8G8N6F5NvZ68tNze1R3L2e0O6tS9eP4dY8F6d8N6F5NvZ68', 'Employee'),
-(2, 'lungile_hr', '$2b$10$wEw6iY8G8N6F5NvZ68tNze1R3L2e0O6tS9eP4dY8F6d8N6F5NvZ68', 'HR Staff'),
-(3, 'thabo_qa', '$2b$10$wEw6iY8G8N6F5NvZ68tNze1R3L2e0O6tS9eP4dY8F6d8N6F5NvZ68', 'Employee'),
-(4, 'keshav_sales', '$2b$10$wEw6iY8G8N6F5NvZ68tNze1R3L2e0O6tS9eP4dY8F6d8N6F5NvZ68', 'Employee'),
-(5, 'zanele_mkt', '$2b$10$wEw6iY8G8N6F5NvZ68tNze1R3L2e0O6tS9eP4dY8F6d8N6F5NvZ68', 'Employee'),
-(6, 'sipho_design', '$2b$10$wEw6iY8G8N6F5NvZ68tNze1R3L2e0O6tS9eP4dY8F6d8N6F5NvZ68', 'Employee'),
-(7, 'naledi_ops', '$2b$10$wEw6iY8G8N6F5NvZ68tNze1R3L2e0O6tS9eP4dY8F6d8N6F5NvZ68', 'Manager'),
-(8, 'farai_content', '$2b$10$wEw6iY8G8N6F5NvZ68tNze1R3L2e0O6tS9eP4dY8F6d8N6F5NvZ68', 'Employee'),
-(9, 'karabo_fin', '$2b$10$wEw6iY8G8N6F5NvZ68tNze1R3L2e0O6tS9eP4dY8F6d8N6F5NvZ68', 'Manager'),
-(10, 'fatima_support', '$2b$10$wEw6iY8G8N6F5NvZ68tNze1R3L2e0O6tS9eP4dY8F6d8N6F5NvZ68', 'Employee');
+(1, 'sibongile_dev', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee'),
+(2, 'lungile_hr', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'HR Staff'),
+(3, 'thabo_qa', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee'),
+(4, 'keshav_sales', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee'),
+(5, 'zanele_mkt', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee'),
+(6, 'sipho_design', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee'),
+(7, 'naledi_ops', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Manager'),
+(8, 'farai_content', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee'),
+(9, 'karabo_fin', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Manager'),
+(10, 'fatima_support', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee');
 
 
 -- 4. PUTS Complete 10-Row Payroll Ledger From our First JSON File
