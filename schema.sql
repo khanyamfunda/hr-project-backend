@@ -192,3 +192,18 @@ INSERT INTO performance_reviews (employee_id, reviewer_id, review_date, score, f
 (3, 7, '2026-06-20', 4, 'Excellent focus on detail throughout our core quality assurance pipelines.'),
 (5, 7, '2026-07-02', 3, 'Solid operational output on regional promotion projects.'),
 (8, 9, '2026-07-12', 5, 'Stellar messaging design across marketing channels.');
+
+-- 1. Completely drop the old layout to clear out conflicting strict properties
+DROP TABLE IF EXISTS attendance;
+
+-- 2. Build the updated MVC schema model with hours tracking features
+CREATE TABLE attendance (
+    attendance_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    work_date DATE NOT NULL,
+    clock_in DATETIME NOT NULL,
+    clock_out DATETIME NULL,
+    work_mode VARCHAR(50) DEFAULT 'On Site',
+    hours_worked DECIMAL(10, 2) DEFAULT 0.00,
+    FOREIGN KEY (employee_id) REFERENCES employees(employee_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
