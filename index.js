@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import authRoutes from './routes/authRoutes.js';
+import attendanceRoutes from './routes/attendanceRoutes.js';
 import leaveRoutes from './routes/leaveRoutes.js'; 
 import pool from './config/db.js';
 import { verifyToken, authorizeRoles } from './middleware/authMiddleware.js';
@@ -27,6 +28,7 @@ app.use((err, req, res, next) => {
 
 // Bind the Authentication System Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/attendance', attendanceRoutes);
 
 // ==================== PROTECTED CORE DATA ROUTES ====================
 
