@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import authRoutes from './routes/authRoutes.js';
+import payrollRoutes from './routes/payrollRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import employeeRoutes from './routes/employeeRoutes.js';
 import departmentRoutes from './routes/departmentRoutes.js';
@@ -56,6 +57,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/payroll', payrollRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/departments', departmentRoutes);
