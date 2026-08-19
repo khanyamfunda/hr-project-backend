@@ -5,7 +5,7 @@ import pool from '../config/db.js';
 
 const router = express.Router();
 
-// ==================== REGISTER ACCOUNT ROUTE ====================
+
 router.post('/register', async (req, res) => {
     try {
         const { employee_id, username, password, role } = req.body;
@@ -35,7 +35,7 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// ==================== LOGIN ROUTE (ISSUES JWT) ====================
+
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
