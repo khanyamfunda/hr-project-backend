@@ -46,18 +46,18 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: "Invalid username or password!" });
         }
 
-        const user = users[0];
+        const user = users[0]; // Pull row index 0 explicitly
 
-        // 2. Safe comparison of typed password against the stored bcrypt hash
+        // Fix: Use user.password_hash to accurately match our database column key
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
             return res.status(401).json({ error: "Invalid username or password!" });
         }
 
-        // 3. Generate secure signed access control token (JWT)
+        // 3. Generate secure signed access control token (JWT with structural fallback secret)
         const token = jwt.sign(
             { user_id: user.user_id, employee_id: user.employee_id, role: user.role },
-            process.env.JWT_SECRET,
+            process.env.JWT_SECRET || 'supersecretcyberpunkkey123',
             { expiresIn: '4h' } // Token auto-expires in 4 hours for security
         );
 

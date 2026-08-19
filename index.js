@@ -1,11 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+
+// ⚡ This must run first so all backend database connections can read your variables!
+dotenv.config();
+
 import authRoutes from './routes/authRoutes.js';
+import leaveRoutes from './routes/leaveRoutes.js'; 
 import pool from './config/db.js';
 import { verifyToken, authorizeRoles } from './middleware/authMiddleware.js';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -13,10 +16,29 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        return res.status(400).json({
+            error: 'Invalid JSON body. In Thunder Client, set the body to JSON and send a proper object.'
+        });
+    }
+    next(err);
+});
+
 // Bind the Authentication System Routes
 app.use('/api/auth', authRoutes);
 
 // ==================== PROTECTED CORE DATA ROUTES ====================
+
+// Bind your leave request endpoints securely
+// - GET & PATCH routes are locked down so only HR Staff and Managers can process approvals
+// - POST route is locked down via verifyToken so any logged-in employee can apply for leave
+app.use('/api/leave-requests', verifyToken, (req, res, next) => {
+    if (req.method === 'GET' || req.method === 'PATCH') {
+        return authorizeRoles('HR Staff', 'Manager')(req, res, next);
+    }
+    next();
+}, leaveRoutes);
 
 // TEST 1: Open Employee endpoint (Accessible by all logged-in workers)
 app.get('/api/employees', verifyToken, async (req, res) => {
