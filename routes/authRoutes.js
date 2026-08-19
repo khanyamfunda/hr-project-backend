@@ -61,7 +61,7 @@ router.post('/login', async (req, res) => {
             { expiresIn: '4h' } // Token auto-expires in 4 hours for security
         );
 
-        // 4. Return success to your Vue.js application frontend
+        // 4. Return success to our Vue.js application frontend
         res.json({
             message: "Login authorized!",
             token: token,
