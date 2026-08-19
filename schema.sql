@@ -30,6 +30,11 @@ CREATE TABLE employees (
     salary DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     employment_history TEXT NULL,
     department_id INT,
+    start_date DATE NULL,
+    FOREIGN KEY (department_id) 
+        REFERENCES departments(department_id) 
+        ON DELETE SET NULL 
+        ON UPDATE CASCADE
     FOREIGN KEY (department_id) REFERENCES departments(department_id)
     ON DELETE SET NULL
     ON UPDATE CASCADE
