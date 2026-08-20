@@ -106,7 +106,7 @@ export const processPayroll = async (req, res) => {
 // @route   GET /api/payroll/my-payslips
 export const getMyPayslips = async (req, res) => {
     try {
-        const employeeId = req.user.id; // Extracted dynamically from verified login session
+        const employeeId = req.user.employee_id ?? req.user.id; // JWT payload uses employee_id
 
         const [rows] = await pool.query(`
             SELECT p.*, e.first_name, e.last_name, e.email, e.job_title, e.salary, d.department_name
@@ -118,6 +118,24 @@ export const getMyPayslips = async (req, res) => {
         `, [employeeId]);
 
         res.json(rows.map(toPayrollResponse));
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// @desc    Get the full payroll ledger (HR/Manager only) — the simple
+//          hours/deductions/final-salary table, distinct from the
+//          period-based payroll_records used above.
+// @route   GET /api/payroll/summary
+export const getPayrollSummary = async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT p.*, e.first_name, e.last_name
+            FROM payroll p
+            JOIN employees e ON p.employee_id = e.employee_id
+            ORDER BY p.employee_id
+        `);
+        res.json({ message: 'Secure payroll records accessed.', data: rows });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

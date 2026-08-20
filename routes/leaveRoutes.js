@@ -17,3 +17,4 @@ router.post('/', createLeaveRequest);
 router.patch('/:id', updateLeaveStatus);
 
 export default router;
+

@@ -5,7 +5,7 @@ import pool from '../config/db.js';
 export const getAllLeaveRequests = async (req, res) => {
     try {
         const query = `
-            SELECT lr.id, e.first_name, e.last_name, lr.start_date, lr.end_date, lr.reason, lr.status 
+            SELECT lr.id, lr.employee_id, e.first_name, e.last_name, lr.start_date, lr.end_date, lr.reason, lr.status 
             FROM leave_requests lr
             JOIN employees e ON lr.employee_id = e.employee_id
             ORDER BY lr.created_at DESC

@@ -1,22 +1,21 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-
-// ⚡ This must run first so all backend database connections can read your variables!
-dotenv.config();
 
 import authRoutes from './routes/authRoutes.js';
 import payrollRoutes from './routes/payrollRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import employeeRoutes from './routes/employeeRoutes.js';
 import departmentRoutes from './routes/departmentRoutes.js';
-import leaveRoutes from './routes/leaveRoutes.js'; 
+import leaveRoutes from './routes/leaveRoutes.js';
 import pool from './config/db.js';
 import { verifyToken, authorizeRoles } from './middleware/authMiddleware.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Safety-net migration for anyone running against an older local database
+// that still predates the start_date column added to schema.sql.
 async function ensureEmployeeSchema() {
     try {
         const [columns] = await pool.query('SHOW COLUMNS FROM employees');
@@ -27,7 +26,7 @@ async function ensureEmployeeSchema() {
             console.log('Migration: added employees.start_date column');
         }
     } catch (error) {
-        console.error('Schema migration failed:', error.message);
+        console.error('Schema migration check failed:', error.message);
     }
 }
 
@@ -51,7 +50,12 @@ app.get('/', (req, res) => {
             '/api/auth/register',
             '/api/employees',
             '/api/departments',
-            '/api/payroll/summary'
+            '/api/leave-requests',
+            '/api/attendance',
+            '/api/payroll/summary',
+            '/api/payroll/my-payslips',
+            '/api/payroll/preview/:yearMonth',
+            '/api/payroll/process'
         ]
     });
 });
@@ -61,7 +65,6 @@ app.use('/api/payroll', payrollRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/departments', departmentRoutes);
-
 
 // ==================== PROTECTED CORE DATA ROUTES ====================
 
@@ -74,26 +77,6 @@ app.use('/api/leave-requests', verifyToken, (req, res, next) => {
     }
     next();
 }, leaveRoutes);
-
-// TEST 1: Open Employee endpoint (Accessible by all logged-in workers)
-app.get('/api/employees', verifyToken, async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT employee_id, first_name, last_name, email, job_title FROM employees');
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-//  TEST 2: Role-Restricted Endpoint (Only viewable by Managers and HR Staff)
-app.get('/api/payroll/summary', verifyToken, authorizeRoles('HR Staff', 'Manager'), async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT * FROM payroll');
-        res.json({ message: 'Secure payroll records accessed.', data: rows });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
 
 ensureEmployeeSchema();
 

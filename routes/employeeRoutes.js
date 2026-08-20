@@ -10,19 +10,22 @@ import {
 
 const router = express.Router();
 
-// 1. GET ALL EMPLOYEES (Publicly viewable or open to logged-in users inline)
+// All employee data (including salary) requires a valid login.
+router.use(verifyToken);
+
+// 1. GET ALL EMPLOYEES (Any logged-in worker)
 router.get('/', getAllEmployees);
 
 // 2. GET SINGLE EMPLOYEE BY ID
 router.get('/:id', getEmployeeById);
 
-// 3. CREATE EMPLOYEE (Protected Inline)
-router.post('/', verifyToken, authorizeRoles('HR Staff', 'Manager'), createEmployee);
+// 3. CREATE EMPLOYEE (HR/Manager only)
+router.post('/', authorizeRoles('HR Staff', 'Manager'), createEmployee);
 
-// 4. UPDATE EMPLOYEE (Protected Inline)
-router.put('/:id', verifyToken, authorizeRoles('HR Staff', 'Manager'), updateEmployee);
+// 4. UPDATE EMPLOYEE (HR/Manager only)
+router.put('/:id', authorizeRoles('HR Staff', 'Manager'), updateEmployee);
 
-// 5. DELETE EMPLOYEE (Protected Inline)
-router.delete('/:id', verifyToken, authorizeRoles('HR Staff', 'Manager'), deleteEmployee);
+// 5. DELETE EMPLOYEE (HR/Manager only)
+router.delete('/:id', authorizeRoles('HR Staff', 'Manager'), deleteEmployee);
 
 export default router;

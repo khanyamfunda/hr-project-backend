@@ -3,6 +3,7 @@ USE moderntech_hr;
 
 -- Drop tables in reverse order of dependencies to avoid foreign key errors during execution
 DROP TABLE IF EXISTS performance_reviews;
+DROP TABLE IF EXISTS payroll_records;
 DROP TABLE IF EXISTS attendance;
 DROP TABLE IF EXISTS leave_requests;
 DROP TABLE IF EXISTS payroll;
@@ -31,13 +32,9 @@ CREATE TABLE employees (
     employment_history TEXT NULL,
     department_id INT,
     start_date DATE NULL,
-    FOREIGN KEY (department_id) 
-        REFERENCES departments(department_id) 
-        ON DELETE SET NULL 
-        ON UPDATE CASCADE
     FOREIGN KEY (department_id) REFERENCES departments(department_id)
-    ON DELETE SET NULL
-    ON UPDATE CASCADE
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 -- ==========================================
@@ -55,7 +52,7 @@ CREATE TABLE users (
 ) ENGINE=InnoDB;
 
 -- ==========================================
--- 4. PAYROLL TABLE
+-- 4. PAYROLL TABLE (simple ledger used by the HR summary view)
 -- ==========================================
 CREATE TABLE payroll (
     payroll_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -68,7 +65,7 @@ CREATE TABLE payroll (
 ) ENGINE=InnoDB;
 
 -- ==========================================
--- 5. LEAVE REQUESTS TABLE (UPDATED BY LUKHO)
+-- 5. LEAVE REQUESTS TABLE
 -- ==========================================
 CREATE TABLE leave_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -80,21 +77,43 @@ CREATE TABLE leave_requests (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (employee_id) REFERENCES employees(employee_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
 -- ==========================================
--- 6. ATTENDANCE TABLE
+-- 6. ATTENDANCE TABLE (clock-in/clock-out model)
 -- ==========================================
 CREATE TABLE attendance (
     attendance_id INT AUTO_INCREMENT PRIMARY KEY,
     employee_id INT NOT NULL,
-    log_date DATE NOT NULL,
-    status ENUM('Present', 'Absent') NOT NULL,
-    UNIQUE KEY unique_emp_attendance (employee_id, log_date),
+    work_date DATE NOT NULL,
+    clock_in DATETIME NULL,
+    clock_out DATETIME NULL,
+    work_mode VARCHAR(20) NOT NULL DEFAULT 'On Site',
+    hours_worked DECIMAL(5, 2) NOT NULL DEFAULT 0,
+    UNIQUE KEY unique_emp_attendance (employee_id, work_date),
     FOREIGN KEY (employee_id) REFERENCES employees(employee_id)
     ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ==========================================
--- 7. PERFORMANCE REVIEWS TABLE
+-- 7. PAYROLL RECORDS TABLE (per-period processed payslips, used by
+--    /api/payroll/preview, /api/payroll/process, /api/payroll/my-payslips)
+-- ==========================================
+CREATE TABLE payroll_records (
+    payroll_id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    pay_period VARCHAR(7) NOT NULL, -- 'YYYY-MM'
+    hours_worked DECIMAL(6, 2) NOT NULL DEFAULT 0,
+    gross_earnings DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    deductions DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    net_pay DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    status ENUM('Draft', 'Processed') NOT NULL DEFAULT 'Draft',
+    processed_at DATETIME NULL,
+    UNIQUE KEY unique_emp_pay_period (employee_id, pay_period),
+    FOREIGN KEY (employee_id) REFERENCES employees(employee_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ==========================================
+-- 8. PERFORMANCE REVIEWS TABLE
 -- ==========================================
 CREATE TABLE performance_reviews (
     review_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -111,7 +130,7 @@ CREATE TABLE performance_reviews (
 -- PERFORMANCE INDEXES
 -- ==========================================
 CREATE INDEX idx_employee_email ON employees(email);
-CREATE INDEX idx_attendance_date ON attendance(log_date);
+CREATE INDEX idx_attendance_date ON attendance(work_date);
 CREATE INDEX idx_leave_status ON leave_requests(status);
 
 -- ==========================================
@@ -123,41 +142,31 @@ INSERT INTO departments (department_name) VALUES
 ('Development'), ('HR'), ('QA'), ('Sales'), ('Marketing'), ('Design'), ('IT'), ('Finance'), ('Support');
 
 -- 2. PUTS All 10 Employee Master Profiles Dynamically
-INSERT INTO employees (first_name, last_name, email, job_title, salary, employment_history, department_id) VALUES
-('Sihongile', 'Nkosi', 'sihongile.nkosi@moderntech.com', 'Software Engineer', 70000.00, 'Joined in 2015, promoted to Senior in 2021', 1),
-('Lungile', 'Moyo', 'lungile.moyo@moderntech.com', 'HR Manager', 80000.00, 'Joined in 2013, promoted to Manager in 2018', 2),
-('Thabo', 'Molefe', 'thabo.molefe@moderntech.com', 'Quality Analyst', 55000.00, 'Joined in 2018', 3),
-('Keshav', 'Naidoo', 'keshav.naidoo@moderntech.com', 'Sales Representative', 60000.00, 'Joined in 2020', 4),
-('Zanele', 'Khumalo', 'zanele.khumalo@moderntech.com', 'Marketing Specialist', 58000.00, 'Joined in 2019', 5),
-('Sipho', 'Zulu', 'sipho.zulu@moderntech.com', 'UI/UX Designer', 65000.00, 'Joined in 2016', 6),
-('Naledi', 'Moeketsi', 'naledi.moeketsi@moderntech.com', 'DevOps Engineer', 72000.00, 'Joined in 2017', 7),
-('Farai', 'Gumbo', 'farai.gumbo@moderntech.com', 'Content Strategist', 56000.00, 'Joined in 2021', 5),
-('Karabo', 'Dlamini', 'karabo.dlamini@moderntech.com', 'Accountant', 62000.00, 'Joined in 2018', 8),
-('Fatima', 'Patel', 'fatima.patel@moderntech.com', 'Customer Support Lead', 58000.00, 'Joined in 2016', 9);
+INSERT INTO employees (first_name, last_name, email, job_title, salary, employment_history, department_id, start_date) VALUES
+('Sihongile', 'Nkosi', 'sihongile.nkosi@moderntech.com', 'Software Engineer', 70000.00, 'Joined in 2015, promoted to Senior in 2021', 1, '2015-03-01'),
+('Lungile', 'Moyo', 'lungile.moyo@moderntech.com', 'HR Manager', 80000.00, 'Joined in 2013, promoted to Manager in 2018', 2, '2013-06-15'),
+('Thabo', 'Molefe', 'thabo.molefe@moderntech.com', 'Quality Analyst', 55000.00, 'Joined in 2018', 3, '2018-01-10'),
+('Keshav', 'Naidoo', 'keshav.naidoo@moderntech.com', 'Sales Representative', 60000.00, 'Joined in 2020', 4, '2020-02-01'),
+('Zanele', 'Khumalo', 'zanele.khumalo@moderntech.com', 'Marketing Specialist', 58000.00, 'Joined in 2019', 5, '2019-07-01'),
+('Sipho', 'Zulu', 'sipho.zulu@moderntech.com', 'UI/UX Designer', 65000.00, 'Joined in 2016', 6, '2016-04-01'),
+('Naledi', 'Moeketsi', 'naledi.moeketsi@moderntech.com', 'DevOps Engineer', 72000.00, 'Joined in 2017', 7, '2017-09-01'),
+('Farai', 'Gumbo', 'farai.gumbo@moderntech.com', 'Content Strategist', 56000.00, 'Joined in 2021', 5, '2021-05-01'),
+('Karabo', 'Dlamini', 'karabo.dlamini@moderntech.com', 'Accountant', 62000.00, 'Joined in 2018', 8, '2018-08-01'),
+('Fatima', 'Patel', 'fatima.patel@moderntech.com', 'Customer Support Lead', 58000.00, 'Joined in 2016', 9, '2016-11-01');
 
 -- 3. PUTS 10 System User Security Credentials (Mapped to Employee IDs 1 to 10)
+-- All demo accounts share the password: Passw0rd!
 INSERT INTO users (employee_id, username, password_hash, role) VALUES
-(1, 'sibongile_dev', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee'),
-(2, 'lungile_hr', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'HR Staff'),
-(3, 'thabo_qa', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee'),
-(4, 'keshav_sales', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee'),
-(5, 'zanele_mkt', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee'),
-(6, 'sipho_design', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee'),
-(7, 'naledi_ops', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Manager'),
-(8, 'farai_content', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee'),
-(9, 'karabo_fin', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Manager'),
-(10, 'fatima_support', '$2b$10$GZYl2ObHTS/MdCCT.lIyY.OGKlln.SYZlBhFEFzkzYagoWjihIvde', 'Employee');
-
-(1, 'sihongile_dev', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee'),
-(2, 'lungile_hr', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'HR Staff'),
-(3, 'thabo_qa', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee'),
-(4, 'keshav_sales', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee'),
-(5, 'zanele_mkt', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee'),
-(6, 'sipho_design', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee'),
-(7, 'naledi_ops', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Manager'),
-(8, 'farai_content', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee'),
-(9, 'karabo_fin', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Manager'),
-(10, 'fatima_support', '$2b$10$mvIY9cZ1kmFy8H979Ci5LuCevds4Mzv8patMC19yg5QSrh1v6M/3O', 'Employee');
+(1, 'sihongile_dev', '$2b$10$P4sNAshyxLZTPpe7/YZhEOIVdLFE8GvQpT6imrv.BTxH9dyIekXEm', 'Employee'),
+(2, 'lungile_hr', '$2b$10$P4sNAshyxLZTPpe7/YZhEOIVdLFE8GvQpT6imrv.BTxH9dyIekXEm', 'HR Staff'),
+(3, 'thabo_qa', '$2b$10$P4sNAshyxLZTPpe7/YZhEOIVdLFE8GvQpT6imrv.BTxH9dyIekXEm', 'Employee'),
+(4, 'keshav_sales', '$2b$10$P4sNAshyxLZTPpe7/YZhEOIVdLFE8GvQpT6imrv.BTxH9dyIekXEm', 'Employee'),
+(5, 'zanele_mkt', '$2b$10$P4sNAshyxLZTPpe7/YZhEOIVdLFE8GvQpT6imrv.BTxH9dyIekXEm', 'Employee'),
+(6, 'sipho_design', '$2b$10$P4sNAshyxLZTPpe7/YZhEOIVdLFE8GvQpT6imrv.BTxH9dyIekXEm', 'Employee'),
+(7, 'naledi_ops', '$2b$10$P4sNAshyxLZTPpe7/YZhEOIVdLFE8GvQpT6imrv.BTxH9dyIekXEm', 'Manager'),
+(8, 'farai_content', '$2b$10$P4sNAshyxLZTPpe7/YZhEOIVdLFE8GvQpT6imrv.BTxH9dyIekXEm', 'Employee'),
+(9, 'karabo_fin', '$2b$10$P4sNAshyxLZTPpe7/YZhEOIVdLFE8GvQpT6imrv.BTxH9dyIekXEm', 'Manager'),
+(10, 'fatima_support', '$2b$10$P4sNAshyxLZTPpe7/YZhEOIVdLFE8GvQpT6imrv.BTxH9dyIekXEm', 'Employee');
 
 -- 4. PUTS Complete 10-Row Payroll Ledger From our first JSON file
 INSERT INTO payroll (employee_id, hours_worked, leave_deductions, final_salary) VALUES
@@ -172,18 +181,42 @@ INSERT INTO payroll (employee_id, hours_worked, leave_deductions, final_salary) 
 (9, 155, 5, 61500.00),
 (10, 162, 4, 57750.00);
 
--- 5. PUTS Complete Daily Log Tracking History From our Third JSON File
-INSERT INTO attendance (employee_id, log_date, status) VALUES
-(1, '2025-07-25', 'Present'), (1, '2025-07-26', 'Absent'), (1, '2025-07-27', 'Present'), (1, '2025-07-28', 'Present'),
-(2, '2025-07-25', 'Present'), (2, '2025-07-26', 'Present'), (2, '2025-07-27', 'Absent'), (2, '2025-07-28', 'Present'),
-(3, '2025-07-25', 'Present'), (3, '2025-07-26', 'Absent'), (3, '2025-07-27', 'Present'), (3, '2025-07-28', 'Present'),
-(4, '2025-07-25', 'Absent'), (4, '2025-07-26', 'Present'), (4, '2025-07-27', 'Present'), (4, '2025-07-28', 'Present'),
-(5, '2025-07-25', 'Present'), (5, '2025-07-26', 'Present'), (5, '2025-07-27', 'Absent'), (5, '2025-07-28', 'Present'),
-(6, '2025-07-25', 'Present'), (6, '2025-07-26', 'Present'), (6, '2025-07-27', 'Absent'), (6, '2025-07-28', 'Present'),
-(7, '2025-07-25', 'Present'), (7, '2025-07-26', 'Present'), (7, '2025-07-27', 'Present'), (7, '2025-07-28', 'Present'),
-(8, '2025-07-25', 'Present'), (8, '2025-07-26', 'Present'), (8, '2025-07-27', 'Present'), (8, '2025-07-28', 'Present'),
-(9, '2025-07-25', 'Present'), (9, '2025-07-26', 'Present'), (9, '2025-07-27', 'Present'), (9, '2025-07-28', 'Present'),
-(10, '2025-07-25', 'Present'), (10, '2025-07-26', 'Present'), (10, '2025-07-27', 'Absent'), (10, '2025-07-28', 'Present');
+-- 5. PUTS Complete Daily Log Tracking History (clock-in/clock-out model)
+-- Absent days are simply the lack of a row for that employee/date.
+INSERT INTO attendance (employee_id, work_date, clock_in, clock_out, work_mode, hours_worked) VALUES
+(1, '2025-07-25', '2025-07-25 09:00:00', '2025-07-25 17:00:00', 'On Site', 8.00),
+(1, '2025-07-27', '2025-07-27 09:00:00', '2025-07-27 17:00:00', 'On Site', 8.00),
+(1, '2025-07-28', '2025-07-28 09:00:00', '2025-07-28 17:00:00', 'On Site', 8.00),
+(2, '2025-07-25', '2025-07-25 09:00:00', '2025-07-25 17:00:00', 'On Site', 8.00),
+(2, '2025-07-26', '2025-07-26 09:00:00', '2025-07-26 17:00:00', 'On Site', 8.00),
+(2, '2025-07-28', '2025-07-28 09:00:00', '2025-07-28 17:00:00', 'On Site', 8.00),
+(3, '2025-07-25', '2025-07-25 09:00:00', '2025-07-25 17:00:00', 'On Site', 8.00),
+(3, '2025-07-27', '2025-07-27 09:00:00', '2025-07-27 17:00:00', 'On Site', 8.00),
+(3, '2025-07-28', '2025-07-28 09:00:00', '2025-07-28 17:00:00', 'On Site', 8.00),
+(4, '2025-07-26', '2025-07-26 09:00:00', '2025-07-26 17:00:00', 'On Site', 8.00),
+(4, '2025-07-27', '2025-07-27 09:00:00', '2025-07-27 17:00:00', 'On Site', 8.00),
+(4, '2025-07-28', '2025-07-28 09:00:00', '2025-07-28 17:00:00', 'On Site', 8.00),
+(5, '2025-07-25', '2025-07-25 09:00:00', '2025-07-25 17:00:00', 'On Site', 8.00),
+(5, '2025-07-26', '2025-07-26 09:00:00', '2025-07-26 17:00:00', 'On Site', 8.00),
+(5, '2025-07-28', '2025-07-28 09:00:00', '2025-07-28 17:00:00', 'On Site', 8.00),
+(6, '2025-07-25', '2025-07-25 09:00:00', '2025-07-25 17:00:00', 'On Site', 8.00),
+(6, '2025-07-26', '2025-07-26 09:00:00', '2025-07-26 17:00:00', 'On Site', 8.00),
+(6, '2025-07-28', '2025-07-28 09:00:00', '2025-07-28 17:00:00', 'On Site', 8.00),
+(7, '2025-07-25', '2025-07-25 09:00:00', '2025-07-25 17:00:00', 'On Site', 8.00),
+(7, '2025-07-26', '2025-07-26 09:00:00', '2025-07-26 17:00:00', 'On Site', 8.00),
+(7, '2025-07-27', '2025-07-27 09:00:00', '2025-07-27 17:00:00', 'On Site', 8.00),
+(7, '2025-07-28', '2025-07-28 09:00:00', '2025-07-28 17:00:00', 'On Site', 8.00),
+(8, '2025-07-25', '2025-07-25 09:00:00', '2025-07-25 17:00:00', 'On Site', 8.00),
+(8, '2025-07-26', '2025-07-26 09:00:00', '2025-07-26 17:00:00', 'On Site', 8.00),
+(8, '2025-07-27', '2025-07-27 09:00:00', '2025-07-27 17:00:00', 'On Site', 8.00),
+(8, '2025-07-28', '2025-07-28 09:00:00', '2025-07-28 17:00:00', 'On Site', 8.00),
+(9, '2025-07-25', '2025-07-25 09:00:00', '2025-07-25 17:00:00', 'On Site', 8.00),
+(9, '2025-07-26', '2025-07-26 09:00:00', '2025-07-26 17:00:00', 'On Site', 8.00),
+(9, '2025-07-27', '2025-07-27 09:00:00', '2025-07-27 17:00:00', 'On Site', 8.00),
+(9, '2025-07-28', '2025-07-28 09:00:00', '2025-07-28 17:00:00', 'On Site', 8.00),
+(10, '2025-07-25', '2025-07-25 09:00:00', '2025-07-25 17:00:00', 'On Site', 8.00),
+(10, '2025-07-26', '2025-07-26 09:00:00', '2025-07-26 17:00:00', 'On Site', 8.00),
+(10, '2025-07-28', '2025-07-28 09:00:00', '2025-07-28 17:00:00', 'On Site', 8.00);
 
 -- 6. PUTS Leave Requests History Log Matrix (CORRECTED BY LUKHO WITH START/END DATES)
 INSERT INTO leave_requests (employee_id, start_date, end_date, reason, status) VALUES
@@ -207,18 +240,3 @@ INSERT INTO performance_reviews (employee_id, reviewer_id, review_date, score, f
 (3, 7, '2026-06-20', 4, 'Excellent focus on detail throughout our core quality assurance pipelines.'),
 (5, 7, '2026-07-02', 3, 'Solid operational output on regional promotion projects.'),
 (8, 9, '2026-07-12', 5, 'Stellar messaging design across marketing channels.');
-
--- 1. Completely drop the old layout to clear out conflicting strict properties
-DROP TABLE IF EXISTS attendance;
-
--- 2. Build the updated MVC schema model with hours tracking features
-CREATE TABLE attendance (
-    attendance_id INT AUTO_INCREMENT PRIMARY KEY,
-    employee_id INT NOT NULL,
-    work_date DATE NOT NULL,
-    clock_in DATETIME NOT NULL,
-    clock_out DATETIME NULL,
-    work_mode VARCHAR(50) DEFAULT 'On Site',
-    hours_worked DECIMAL(10, 2) DEFAULT 0.00,
-    FOREIGN KEY (employee_id) REFERENCES employees(employee_id) ON DELETE CASCADE
-) ENGINE=InnoDB;
