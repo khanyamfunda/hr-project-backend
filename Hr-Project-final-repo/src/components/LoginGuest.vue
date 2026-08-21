@@ -1,7 +1,7 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { useHrState, AUTH_USER, AUTH_PASSWORD } from '../composables/userHrState.js'
+import { useHrState } from '../composables/userHrState.js'
 
 const emit = defineEmits(['hr-login', 'employee-login'])
 
@@ -20,11 +20,6 @@ async function login() {
     loginError.value = ''
     emit('hr-login', user)
   } catch (error) {
-    if (loginForm.username === AUTH_USER && loginForm.password === AUTH_PASSWORD) {
-      loginError.value = ''
-      emit('hr-login', { role: 'HR Staff', localOnly: true })
-      return
-    }
     loginError.value = error.message || 'Invalid credentials.'
   }
 }

@@ -4,7 +4,7 @@ import attendanceData from '../../Attendance.json'
 import payrollData from '../../payroll_data.json'
 
 const STORAGE_KEY = 'moderntech-hr-poc-state-v3'
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 const TOKEN_KEY = 'moderntech-hr-api-token'
 export const AUTH_USER = 'hr_admin'
 export const AUTH_PASSWORD = 'MT2026!'
