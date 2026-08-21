@@ -1,0 +1,1 @@
+SELECT * FROM moderntech_hr.leave_requests;
