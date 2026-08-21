@@ -1,9 +1,9 @@
 import express from 'express';
-import { 
-    getAllLeaveRequests, 
-    createLeaveRequest, 
-    updateLeaveStatus 
-} from '../controllers/LeaveCon.js'; // Adjust path based on your folder structure
+import {
+  getAllLeaveRequests,
+  requestLeave,
+  updateLeaveStatus
+} from '../controllers/leaveCon.js'; // Adjust path based on your folder structure
 
 const router = express.Router();
 
@@ -11,7 +11,7 @@ const router = express.Router();
 router.get('/', getAllLeaveRequests);
 
 // Submit a new leave request
-router.post('/', createLeaveRequest);
+router.post('/', requestLeave);
 
 // Update leave status
 router.patch('/:id', updateLeaveStatus);
