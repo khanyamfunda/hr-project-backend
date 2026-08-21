@@ -14,6 +14,10 @@ import { verifyToken, authorizeRoles } from './middleware/authMiddleware.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const allowedOrigins = (process.env.FRONTEND_URLS || 'http://localhost:5173,http://127.0.0.1:5173')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
 // Safety-net migration for anyone running against an older local database
 // that still predates the start_date column added to schema.sql.
@@ -27,7 +31,7 @@ async function ensureEmployeeSchema() {
     }
 }
 
-app.use(cors());
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 app.use((err, req, res, next) => {

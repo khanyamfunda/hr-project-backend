@@ -60,7 +60,7 @@ async function loginEmployee() {
           </div>
           <div class="col-12">
             <label class="form-label">Password</label>
-            <input v-model="loginForm.password" type="password" class="form-control" placeholder="MT2026!" />
+            <input v-model="loginForm.password" type="password" class="form-control" placeholder="Passw0rd!" />
           </div>
           <div v-if="loginError" class="col-12">
             <div class="alert alert-danger mb-0 py-2">{{ loginError }}</div>

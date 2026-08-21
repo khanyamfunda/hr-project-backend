@@ -58,7 +58,7 @@ router.post('/login', async (req, res) => {
         const token = jwt.sign(
             { user_id: user.user_id, employee_id: user.employee_id, role: user.role },
             process.env.JWT_SECRET || 'supersecretcyberpunkkey123',
-            { expiresIn: '4h' } // Token auto-expires in 4 hours for security
+            { expiresIn: process.env.JWT_EXPIRY || '4h' } // Token auto-expires in 4 hours for security
         );
 
         // 4. Return success to our Vue.js application frontend
@@ -92,7 +92,7 @@ router.post('/employee-login', async (req, res) => {
         const token = jwt.sign(
             { user_id: user.user_id, employee_id: user.employee_id, role: user.role },
             process.env.JWT_SECRET || 'supersecretcyberpunkkey123',
-            { expiresIn: '4h' }
+            { expiresIn: process.env.JWT_EXPIRY || '4h' }
         );
 
         res.json({ message: 'Employee login authorized!', token, role: user.role, username: user.username, employee_id: user.employee_id });

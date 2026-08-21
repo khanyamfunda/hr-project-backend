@@ -37,8 +37,10 @@ export const getMyLeaveRequests = async (req, res) => {
 // @route   POST /api/leaves
 export const createLeaveRequest = async (req, res) => {
     const { employee_id, start_date, end_date, reason } = req.body;
+    const isPrivileged = ['HR Staff', 'Manager'].includes(req.user.role);
+    const requestedEmployeeId = isPrivileged ? Number(employee_id) : req.user.employee_id;
 
-    if (!employee_id || !start_date || !end_date || !reason || reason.trim() === "") {
+    if (!requestedEmployeeId || !start_date || !end_date || !reason || reason.trim() === "") {
         return res.status(400).json({ error: "All fields are required." });
     }
 
@@ -56,7 +58,7 @@ export const createLeaveRequest = async (req, res) => {
 
     try {
         const query = `INSERT INTO leave_requests (employee_id, start_date, end_date, reason) VALUES (?, ?, ?, ?)`;
-        const [result] = await pool.query(query, [employee_id, start_date, end_date, reason]);
+        const [result] = await pool.query(query, [requestedEmployeeId, start_date, end_date, reason]);
         
         return res.status(201).json({ 
             message: "Leave request submitted successfully!", 

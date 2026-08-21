@@ -40,6 +40,12 @@ export const getAllEmployees = async (req, res) => {
 export const getEmployeeById = async (req, res) => {
     try {
         const employeeId = Number(req.params.id);
+        const isPrivileged = ['HR Staff', 'Manager'].includes(req.user.role);
+
+        if (!isPrivileged && req.user.employee_id !== employeeId) {
+            return res.status(403).json({ error: 'You can only view your own employee profile.' });
+        }
+
         const [rows] = await pool.query(`
             SELECT e.employee_id, e.first_name, e.last_name, e.email, e.job_title, e.salary,
                    e.employment_history, e.department_id, e.start_date,

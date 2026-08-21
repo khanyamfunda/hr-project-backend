@@ -13,8 +13,8 @@ const router = express.Router();
 // All employee data (including salary) requires a valid login.
 router.use(verifyToken);
 
-// 1. GET ALL EMPLOYEES (Any logged-in worker)
-router.get('/', getAllEmployees);
+// 1. GET ALL EMPLOYEES (HR/Manager only)
+router.get('/', authorizeRoles('HR Staff', 'Manager'), getAllEmployees);
 
 // 2. GET SINGLE EMPLOYEE BY ID
 router.get('/:id', getEmployeeById);
