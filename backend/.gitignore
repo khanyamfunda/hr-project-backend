@@ -1,0 +1,9 @@
+# Block private credentials and environment configurations
+.env
+
+# Block massive local dependencies folder (You generate this locally via npm install)
+node_modules/
+
+# Block local system cache files
+.DS_Store
+Thumbs.db
